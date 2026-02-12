@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Books - Digital Library{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h1 class="gradient-text">
+                    <i class="fas fa-books"></i> Manage Books
+                </h1>
+                <p class="text-muted">Edit, delete, or add new books</p>
+            </div>
+            <a href="{{ url_for('add_book') }}" class="btn btn-gradient-success btn-lg">
+                <i class="fas fa-plus"></i> Add New Book
+            </a>
+        </div>
+        
+        {% if books %}
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>ISBN</th>
+                        <th>Category</th>
+                        <th>Total</th>
+                        <th>Available</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for book in books %}
+                    <tr>
+                        <td><strong>{{ book.title }}</strong></td>
+                        <td>{{ book.author }}</td>
+                        <td>{{ book.isbn }}</td>
+                        <td><span class="badge-category">{{ book.category }}</span></td>
+                        <td>{{ book.quantity }}</td>
+                        <td>
+                            {% if book.is_available %}
+                                <span class="badge-available">{{ book.available_quantity }}</span>
+                            {% else %}
+                                <span class="badge-unavailable">0</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('edit_book', book_id=book.id) }}" 
+                               class="btn btn-sm btn-gradient-info">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <form method="POST" action="{{ url_for('delete_book', book_id=book.id) }}" 
+                                  class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-gradient-warning btn-delete">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-book" style="font-size: 5rem; color: var(--text-muted); opacity: 0.3;"></i>
+            <h4 class="mt-4 text-muted">No books in library</h4>
+            <p class="text-muted">Start by adding your first book</p>
+            <a href="{{ url_for('add_book') }}" class="btn btn-gradient-success mt-3">
+                <i class="fas fa-plus"></i> Add First Book
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

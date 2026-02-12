@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Librarian Dashboard - Digital Library{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5 fade-in">
+            <h1 class="gradient-text">
+                <i class="fas fa-chart-line"></i> Librarian Dashboard
+            </h1>
+            <p class="text-muted">Library Management Overview</p>
+        </div>
+        
+        <!-- Statistics Cards -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-3">
+                <div class="dashboard-card info">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h2 class="mb-1">{{ total_books }}</h2>
+                            <p class="text-muted mb-0">Total Books</p>
+                        </div>
+                        <i class="fas fa-books stat-card-icon"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="dashboard-card success">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h2 class="mb-1">{{ total_users }}</h2>
+                            <p class="text-muted mb-0">Registered Users</p>
+                        </div>
+                        <i class="fas fa-users stat-card-icon"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="dashboard-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h2 class="mb-1">{{ borrowed_books }}</h2>
+                            <p class="text-muted mb-0">Currently Borrowed</p>
+                        </div>
+                        <i class="fas fa-exchange-alt stat-card-icon"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="dashboard-card warning">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h2 class="mb-1">{{ overdue_books }}</h2>
+                            <p class="text-muted mb-0">Overdue Books</p>
+                        </div>
+                        <i class="fas fa-exclamation-triangle stat-card-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <a href="{{ url_for('add_book') }}" class="text-decoration-none">
+                    <div class="dashboard-card text-center h-100">
+                        <div class="icon-circle mx-auto" style="background: var(--gradient-success);">
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <h5>Add New Book</h5>
+                        <p class="text-muted mb-0">Add books to library</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{{ url_for('manage_books') }}" class="text-decoration-none">
+                    <div class="dashboard-card text-center h-100">
+                        <div class="icon-circle mx-auto" style="background: var(--gradient-info);">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <h5>Manage Books</h5>
+                        <p class="text-muted mb-0">Edit or delete books</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{{ url_for('all_borrows') }}" class="text-decoration-none">
+                    <div class="dashboard-card text-center h-100">
+                        <div class="icon-circle mx-auto" style="background: var(--gradient-warning);">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <h5>View All Borrows</h5>
+                        <p class="text-muted mb-0">Manage transactions</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Recent Borrow Records -->
+        {% if recent_borrows %}
+        <div class="mb-5">
+            <h3 class="mb-4">
+                <i class="fas fa-clock"></i> Recent Borrow Activities
+            </h3>
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Book</th>
+                            <th>Borrow Date</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in recent_borrows[:10] %}
+                        <tr>
+                            <td>{{ record.user.username }}</td>
+                            <td>
+                                <strong>{{ record.book.title }}</strong><br>
+                                <small class="text-muted">{{ record.book.author }}</small>
+                            </td>
+                            <td>{{ record.borrow_date.strftime('%b %d, %Y') }}</td>
+                            <td>
+                                {% if record.return_date %}
+                                    {{ record.return_date.strftime('%b %d, %Y') }}
+                                {% else %}
+                                    {{ record.due_date.strftime('%b %d, %Y') }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if record.status == 'returned' %}
+                                    <span class="badge-status badge-returned">Returned</span>
+                                {% elif record.is_overdue %}
+                                    <span class="badge-status badge-overdue">Overdue</span>
+                                {% else %}
+                                    <span class="badge-status badge-borrowed">Borrowed</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if record.status != 'returned' %}
+                                    <form method="POST" action="{{ url_for('return_book', record_id=record.id) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-gradient-success">
+                                            <i class="fas fa-check"></i> Mark Returned
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <span class="text-success"><i class="fas fa-check-circle"></i> Complete</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Overdue Books Alert -->
+        {% if overdue_records %}
+        <div class="alert alert-warning">
+            <h5><i class="fas fa-exclamation-triangle"></i> Overdue Books Alert</h5>
+            <p class="mb-0">There are {{ overdue_records|length }} overdue books that need attention.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

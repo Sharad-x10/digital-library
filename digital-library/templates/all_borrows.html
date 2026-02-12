@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}All Borrows - Digital Library{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h1 class="gradient-text">
+                    <i class="fas fa-exchange-alt"></i> All Borrow Records
+                </h1>
+                <p class="text-muted">View and manage all book transactions</p>
+            </div>
+        </div>
+        
+        <!-- Filter -->
+        <div class="search-container mb-4">
+            <form method="GET" action="{{ url_for('all_borrows') }}">
+                <div class="row">
+                    <div class="col-md-4">
+                        <select name="status" class="form-select" onchange="this.form.submit()">
+                            <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
+                            <option value="borrowed" {% if status_filter == 'borrowed' %}selected{% endif %}>Borrowed</option>
+                            <option value="returned" {% if status_filter == 'returned' %}selected{% endif %}>Returned</option>
+                            <option value="overdue" {% if status_filter == 'overdue' %}selected{% endif %}>Overdue</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        {% if borrows %}
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Book</th>
+                        <th>Author</th>
+                        <th>Borrow Date</th>
+                        <th>Due Date</th>
+                        <th>Return Date</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in borrows %}
+                    <tr>
+                        <td>{{ record.user.username }}</td>
+                        <td><strong>{{ record.book.title }}</strong></td>
+                        <td>{{ record.book.author }}</td>
+                        <td>{{ record.borrow_date.strftime('%b %d, %Y') }}</td>
+                        <td>{{ record.due_date.strftime('%b %d, %Y') }}</td>
+                        <td>
+                            {% if record.return_date %}
+                                {{ record.return_date.strftime('%b %d, %Y') }}
+                            {% else %}
+                                <span class="text-muted">Not returned</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if record.status == 'returned' %}
+                                <span class="badge-status badge-returned">Returned</span>
+                            {% elif record.is_overdue %}
+                                <span class="badge-status badge-overdue">Overdue</span>
+                            {% else %}
+                                <span class="badge-status badge-borrowed">Borrowed</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if record.status != 'returned' %}
+                                <form method="POST" action="{{ url_for('return_book', record_id=record.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-gradient-success">
+                                        <i class="fas fa-check"></i> Mark Returned
+                                    </button>
+                                </form>
+                            {% else %}
+                                <span class="text-success"><i class="fas fa-check-circle"></i> Complete</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-exchange-alt" style="font-size: 5rem; color: var(--text-muted); opacity: 0.3;"></i>
+            <h4 class="mt-4 text-muted">No borrow records found</h4>
+            <p class="text-muted">Adjust your filters or check back later</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}My Books - Digital Library{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5 fade-in">
+            <h1 class="gradient-text">
+                <i class="fas fa-book"></i> My Books
+            </h1>
+            <p class="text-muted">Manage your borrowed books and history</p>
+        </div>
+        
+        <!-- Active Borrows -->
+        {% if active_borrows or overdue_borrows %}
+        <div class="mb-5">
+            <h3 class="mb-4">
+                <i class="fas fa-bookmark"></i> Currently Borrowed
+            </h3>
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Book</th>
+                            <th>Author</th>
+                            <th>Borrow Date</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in overdue_borrows + active_borrows %}
+                        <tr>
+                            <td><strong>{{ record.book.title }}</strong></td>
+                            <td>{{ record.book.author }}</td>
+                            <td>{{ record.borrow_date.strftime('%b %d, %Y') }}</td>
+                            <td>{{ record.due_date.strftime('%b %d, %Y') }}</td>
+                            <td>
+                                {% if record.is_overdue %}
+                                    <span class="badge-status badge-overdue">
+                                        <i class="fas fa-exclamation-triangle"></i> Overdue
+                                    </span>
+                                {% else %}
+                                    <span class="badge-status badge-borrowed">
+                                        <i class="fas fa-clock"></i> {{ record.days_until_due }} days left
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form method="POST" action="{{ url_for('return_book', record_id=record.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-gradient-success btn-return" 
+                                            data-book-title="{{ record.book.title }}">
+                                        <i class="fas fa-undo"></i> Return
+                                    </button>
+                                </form>
+                                <a href="{{ url_for('book_details', book_id=record.book.id) }}" 
+                                   class="btn btn-sm btn-gradient-info">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="dashboard-card text-center mb-5">
+            <i class="fas fa-book-open" style="font-size: 4rem; color: var(--text-muted); opacity: 0.3;"></i>
+            <h4 class="mt-3 text-muted">No Active Borrows</h4>
+            <p class="text-muted">You haven't borrowed any books yet</p>
+            <a href="{{ url_for('browse_books') }}" class="btn btn-gradient-primary mt-3">
+                <i class="fas fa-search"></i> Browse Books
+            </a>
+        </div>
+        {% endif %}
+        
+        <!-- Borrowing History -->
+        {% if history %}
+        <div class="mb-5">
+            <h3 class="mb-4">
+                <i class="fas fa-history"></i> Borrowing History
+            </h3>
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Book</th>
+                            <th>Author</th>
+                            <th>Borrowed On</th>
+                            <th>Returned On</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in history[:20] %}
+                        <tr>
+                            <td><strong>{{ record.book.title }}</strong></td>
+                            <td>{{ record.book.author }}</td>
+                            <td>{{ record.borrow_date.strftime('%b %d, %Y') }}</td>
+                            <td>{{ record.return_date.strftime('%b %d, %Y') }}</td>
+                            <td>
+                                <span class="badge-status badge-returned">
+                                    <i class="fas fa-check-circle"></i> Returned
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

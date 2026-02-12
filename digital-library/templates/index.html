@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Digital Library System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center hero-content">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <h1 class="hero-title">Welcome to Your Digital Library</h1>
+                <p class="hero-subtitle">
+                    Explore thousands of books, borrow your favorites, and embark on endless reading adventures. 
+                    Your next great read is just a click away!
+                </p>
+                {% if not current_user.is_authenticated %}
+                    <div class="mt-4">
+                        <a href="{{ url_for('register') }}" class="btn btn-gradient-success btn-lg me-3">
+                            <i class="fas fa-user-plus"></i> Get Started
+                        </a>
+                        <a href="{{ url_for('login') }}" class="btn btn-gradient-info btn-lg">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="mt-4">
+                        {% if current_user.role == 'student' %}
+                            <a href="{{ url_for('browse_books') }}" class="btn btn-gradient-success btn-lg me-3">
+                                <i class="fas fa-search"></i> Browse Books
+                            </a>
+                            <a href="{{ url_for('my_books') }}" class="btn btn-gradient-info btn-lg">
+                                <i class="fas fa-book"></i> My Books
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('librarian_dashboard') }}" class="btn btn-gradient-success btn-lg">
+                                <i class="fas fa-chart-line"></i> Go to Dashboard
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="fas fa-book-reader" style="font-size: 15rem; opacity: 0.3; color: white;"></i>
+            </div>
+        </div>
+        
+        <!-- Statistics -->
+        <div class="hero-stats">
+            <div class="stat-item">
+                <span class="stat-number">{{ total_books }}</span>
+                <span class="stat-label">Total Books</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">{{ total_users }}</span>
+                <span class="stat-label">Active Readers</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">{{ total_borrowed }}</span>
+                <span class="stat-label">Books Borrowed</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="gradient-text">Why Choose Digital Library?</h2>
+            <p class="text-muted">Discover the benefits of our modern library system</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="dashboard-card text-center h-100">
+                    <div class="icon-circle mx-auto">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h4>Easy Search</h4>
+                    <p class="text-muted">
+                        Find any book instantly with our powerful search feature. 
+                        Search by title, author, ISBN, or category.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="dashboard-card success text-center h-100">
+                    <div class="icon-circle mx-auto" style="background: var(--gradient-success);">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h4>Mobile Friendly</h4>
+                    <p class="text-muted">
+                        Access your library anytime, anywhere from any device. 
+                        Fully responsive design for all screen sizes.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="dashboard-card warning text-center h-100">
+                    <div class="icon-circle mx-auto" style="background: var(--gradient-warning);">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h4>Track Due Dates</h4>
+                    <p class="text-muted">
+                        Never miss a return date with automatic reminders and 
+                        an easy-to-use dashboard showing all your borrowed books.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Recent Books Section -->
+{% if recent_books %}
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="gradient-text">Recent Additions</h2>
+            <p class="text-muted">Check out our latest books</p>
+        </div>
+        
+        <div class="row g-4">
+            {% for book in recent_books %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card book-card h-100 fade-in">
+                    <div class="card-img-top">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="card-body">
+                        <span class="badge-category">{{ book.category }}</span>
+                        <h5 class="card-title mt-2">{{ book.title }}</h5>
+                        <p class="card-text">
+                            <i class="fas fa-user"></i> {{ book.author }}<br>
+                            <i class="fas fa-calendar"></i> {{ book.publication_year }}
+                        </p>
+                        <p class="card-text">
+                            <small class="text-muted">{{ book.description[:100] }}...</small>
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            {% if book.is_available %}
+                                <span class="badge-available">
+                                    <i class="fas fa-check-circle"></i> Available
+                                </span>
+                            {% else %}
+                                <span class="badge-unavailable">
+                                    <i class="fas fa-times-circle"></i> Unavailable
+                                </span>
+                            {% endif %}
+                            {% if current_user.is_authenticated %}
+                                <a href="{{ url_for('book_details', book_id=book.id) }}" class="btn btn-sm btn-gradient-info">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('login') }}" class="btn btn-sm btn-gradient-primary">
+                                    <i class="fas fa-sign-in-alt"></i> Login to View
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% if current_user.is_authenticated and current_user.role == 'student' %}
+        <div class="text-center mt-5">
+            <a href="{{ url_for('browse_books') }}" class="btn btn-gradient-primary btn-lg">
+                <i class="fas fa-book-open"></i> Browse All Books
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Call to Action -->
+{% if not current_user.is_authenticated %}
+<section class="py-5" style="background: var(--gradient-primary); color: white;">
+    <div class="container text-center">
+        <h2 class="mb-4">Ready to Start Reading?</h2>
+        <p class="lead mb-4">Join thousands of readers and start your literary journey today!</p>
+        <a href="{{ url_for('register') }}" class="btn btn-light btn-lg px-5">
+            <i class="fas fa-user-plus"></i> Create Free Account
+        </a>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
